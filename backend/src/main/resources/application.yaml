@@ -1,0 +1,14 @@
+server:
+  port: ${SERVER_PORT}
+spring:
+  application:
+    name: quikz-backend
+  datasource:
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
+    url: ${DATABASE_URL}
+    driver-class-name: ${DATABASE_DRIVER_CLASS}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
