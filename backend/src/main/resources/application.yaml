@@ -1,3 +1,10 @@
+app:
+  security:
+    jwt:
+      access-secret: ${ACCESS_SECRET}
+      access-expiration: ${ACCESS_EXPIRATION}
+      refresh-secret: ${REFRESH_SECRET}
+      refresh-expiration: ${REFRESH_EXPIRATION}
 server:
   port: ${SERVER_PORT}
 spring:
@@ -12,3 +19,4 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+

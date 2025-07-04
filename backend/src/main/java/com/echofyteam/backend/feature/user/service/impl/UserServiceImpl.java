@@ -2,6 +2,8 @@ package com.echofyteam.backend.feature.user.service.impl;
 
 import com.echofyteam.backend.exception.impl.BusinessException;
 import com.echofyteam.backend.exception.impl.BusinessExceptionReason;
+import com.echofyteam.backend.feature.role.entity.Role;
+import com.echofyteam.backend.feature.role.repository.RoleRepository;
 import com.echofyteam.backend.feature.user.dto.request.CreateUserRequest;
 import com.echofyteam.backend.feature.user.dto.response.UserResponse;
 import com.echofyteam.backend.feature.user.entity.UserEntity;
@@ -15,7 +17,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +29,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final RoleRepository roleRepository;
 
     @Override
     public UserResponse getUserById(UUID userID) {
@@ -30,7 +37,7 @@ public class UserServiceImpl implements UserService {
 
         UserEntity userEntity = userRepository.findById(userID)
                 .orElseThrow(() -> {
-                    log.error("User with id: {} not found", userID);
+                    log.warn("User with id: {} not found", userID);
                     return new BusinessException(BusinessExceptionReason.USER_NOT_FOUND);
                 });
 
@@ -55,11 +62,23 @@ public class UserServiceImpl implements UserService {
     public UserResponse createUser(CreateUserRequest createUserRequest) {
         log.info("Creating an user with email: {}", createUserRequest.email());
         if (userRepository.existsByEmail(createUserRequest.email())) {
-            log.error("User with email {} is already exist", createUserRequest.email());
+            log.warn("User with email {} is already exist", createUserRequest.email());
             throw new BusinessException(BusinessExceptionReason.USER_ALREADY_EXISTS);
         }
 
-        String username = createUserRequest.email().split("@")[0];
+        String baseUsername = createUserRequest.email().split("@")[0];
+        String username = baseUsername;
+
+        while (userRepository.existsByUsername(username)) {
+            int suffix = ThreadLocalRandom.current().nextInt(100);
+            username = baseUsername + suffix;
+            log.warn("Username {} is taken, trying with suffix: {}", baseUsername, suffix);
+        }
+
+        Set<Role> roles = createUserRequest.roles().stream()
+                .map(roleName -> roleRepository.findByName(roleName)
+                        .orElseThrow(() -> new BusinessException(BusinessExceptionReason.ROLE_NOT_FOUND)))
+                .collect(Collectors.toSet());
 
         UserEntity userEntity = UserEntity.builder()
                 .username(username)
@@ -67,6 +86,7 @@ public class UserServiceImpl implements UserService {
                 .password(createUserRequest.password())
                 .isDeleted(false)
                 .isBlocked(false)
+                .roles(roles)
                 .build();
 
         UserEntity savedUser = userRepository.save(userEntity);
