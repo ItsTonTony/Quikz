@@ -12,6 +12,10 @@ public enum BusinessExceptionReason {
 
     USERNAME_IS_ALREADY_TAKEN("Username is already taken by another user", HttpStatus.BAD_REQUEST),
 
+    PASSWORDS_DO_NOT_MATCH("Passwords do not match", HttpStatus.BAD_REQUEST),
+
+    ROLE_NOT_FOUND("Role not found", HttpStatus.NOT_FOUND),
+
     TOKEN_NOT_FOUND("Token not found", HttpStatus.NOT_FOUND),
     INVALID_TOKEN("Invalid token", HttpStatus.BAD_REQUEST),
 
