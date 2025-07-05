@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="data:image/svg+xml;base64,..." alt="quikz-banner" width="800">
+	<img src="./assets/quikz_logo.png" alt="quikz-banner" width="800">
 </p>
 <p align="center">
 	<em><code>❯ Quikz — a vocabulary learning service using flashcards and more.</code></em>
