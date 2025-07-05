@@ -14,10 +14,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Random;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -32,7 +34,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
 
     @Override
-    public UserResponse getUserById(UUID userID) {
+    public UserResponse getUserByID(UUID userID) {
         log.info("Getting warn by id: {}", userID);
 
         UserEntity userEntity = userRepository.findById(userID)
@@ -132,5 +134,17 @@ public class UserServiceImpl implements UserService {
 
         log.info("Username for user id: {} changed to '{}'", userID, username);
         return userMapper.toUserResponse(updatedUser);
+    }
+
+    @Override
+    public Optional<UserEntity> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return Optional.empty();
+        }
+
+        String username = authentication.getName();
+        return userRepository.findByEmail(username)
+                .or(() -> userRepository.findByUsername(username));
     }
 }

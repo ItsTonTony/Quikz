@@ -1,6 +1,7 @@
 package com.echofyteam.backend.feature.user.entity;
 
 import com.echofyteam.backend.feature.auth.entity.RefreshTokenEntity;
+import com.echofyteam.backend.feature.flashcard.entity.UserFlashcardProgressEntity;
 import com.echofyteam.backend.feature.role.entity.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -41,7 +42,7 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -63,14 +64,12 @@ public class UserEntity implements UserDetails {
     @Builder.Default
     private List<RefreshTokenEntity> refreshTokens = new ArrayList<>();
 
-
     // Status
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
     @Column(name = "is_blocked", nullable = false)
     private boolean isBlocked;
-
 
     // Timestamps
     @CreatedDate
@@ -83,6 +82,16 @@ public class UserEntity implements UserDetails {
 
     private Instant lastLoginAt;
 
+    // Flashcards
+    @OneToMany(
+            mappedBy = "user",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<UserFlashcardProgressEntity> flashcardProgresses = new ArrayList<>();
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
@@ -91,5 +100,9 @@ public class UserEntity implements UserDetails {
                         role.getPermissions().stream()
                 ))
                 .collect(Collectors.toSet());
+    }
+
+    public String getUsername() {
+        return email;
     }
 }
